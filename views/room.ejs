@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+<div class="jumbotron centered">
+  <h1>Hello <%=name%>,This is the room</h1>
+  <h2>Name: <%= roomName %></h2>
+  <br><br>
+  <h4>The Users part of this room are:</h4>
+  <% if(typeof(users)==="undefined" || users.length===0 ){ %>
+    <p>None</p>
+  <% }else{ %>
+  <% for(var i=0 ; i<users.length ; i++){ %>
+    <p>User Name:<%= users[i].name %>||  User Email Id:<%= users[i].username %></p><br>
+  <% } }%>
+
+  <h3>List of Items: </h3>
+
+  <h4>Add Item: </h4>
+  <form action="/add" method="POST">
+      <label for="text">Item Name</label>
+      <input type="text"name="itemName">
+      <label for="text">Item Quantity</label>
+      <input type="text"name="itemQuantity">
+    <button type="submit" class="btn btn-dark">Add</button>
+  </form>
+
+</div>
+
+<%- include('partials/footer') %>
