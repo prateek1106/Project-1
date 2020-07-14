@@ -1,0 +1,35 @@
+<%- include('partials/header') %>
+<div class="jumbotron centered">
+  <a class="btn btn-light" href="/logout" role="button">Log Out</a>
+  <a class="btn btn-light" href="/profile" role="button"><%= name %></a>
+  
+  <h1>Hello <%=name%>, your email/username: <%=username%> </h1>
+  <h2>Name: <%= roomName %>, room id: <%=roomid%> </h2>
+  <br><br>
+
+  <form action="/done-delete" method="POST">
+    <input type="hidden" name="roomName" value="<%= roomName %>">
+    <input type="hidden" name="roomid" value="<%= roomid %>">
+    <button type="submit" class="btn btn-dark"> Done </button>
+  </form>
+
+  <h3>List of Items: </h3>
+  <% if(typeof(items)==="undefined" || items.length===0 ){ %>
+    <p>None</p>
+  <% }else{ %>
+  <% for(var i=0 ; i<items.length ; i++){ %>
+    <div>
+      <form action="/delete" method="POST">
+        <p>User Name:<%= items[i].username %>||  Item Name:<%= items[i].itemName %>||  Item Quantity:<%= items[i].itemQuantity %>
+
+         <input type="hidden" name="roomName" value="<%=roomName%>">
+         <input type="hidden" name="itemID" value="<%=items[i]._id%>">
+         <input type="hidden" name="roomid" value="<%=roomid%>">
+         <button type="submit" class="btn btn-dark">-</button></p>
+        <br>
+      </form>
+    </div>
+  <% } }%>
+
+</div>
+<%- include('partials/footer') %>

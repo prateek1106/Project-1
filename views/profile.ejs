@@ -6,6 +6,8 @@
     <h3> Your Email ID is: <%= username %> </h3>
     <h1> This is the Profile Page</h1>
     <a class="btn btn-light btn-lg" href="/logout" role="button">Log Out</a>
+    <a class="btn btn-light btn-lg" href="/profile" role="button"><%= name %></a>
+
     <br><br>
     <h4>The rooms that you are currently part of are: </h4>
     <% if(typeof(rooms)==="undefined" || rooms.length===0 ){ %>
@@ -14,73 +16,11 @@
     <% for(var i=0 ; i<rooms.length ; i++){ %>
       <p>Room Name:<%= rooms[i].roomName %> ||  Room Id:<%= rooms[i].roomid %></p><br>
     <% } }%>
-    <div class="container mt-5">
-      <h1>Create Room</h1>
 
-      <div class="row">
-        <div class="col-sm-8">
-          <div class="card">
-            <div class="card-body">
+    <a class="btn btn-light btn-lg" href="/createRoom" role="button">Create Room</a>
+    <a class="btn btn-light btn-lg" href="/joinRoom" role="button">Join Room</a>
 
-              <form action="/create" method="POST">
-                <div class="form-group">
-                  <label>Room ID</label>
-                  <input type="text" class="form-control" name="roomid">
-                </div>
-                <div class="form-group">
-                  <label>Room Name</label>
-                  <input type="text" class="form-control" name="roomName">
-                </div>
-                <div class="form-group">
-                  <label for="password">Password</label>
-                  <input type="password" class="form-control" name="password">
-                </div>
-
-                <input type="hidden" name="userName" value="<%=username%>">
-                <input type="hidden" name="name" value="<%=name%>">
-
-
-                <button type="submit" class="btn btn-dark">Create Room</button>
-              </form>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
     </div>
-    <div class="container mt-5">
-      <h1>Join Room</h1>
-
-      <div class="row">
-        <div class="col-sm-8">
-          <div class="card">
-            <div class="card-body">
-
-              <!-- Makes POST request to /register route -->
-              <form action="/join" method="POST">
-                <div class="form-group">
-                  <label>Room ID</label>
-                  <input type="text" class="form-control" name="roomid">
-                </div>
-                <div class="form-group">
-                  <label for="password">Password</label>
-                  <input type="password" class="form-control" name="password">
-                </div>
-
-                <input type="hidden" name="userName" value="<%=username%>">
-                <input type="hidden" name="name" value="<%=name%>">
-
-                <button type="submit" class="btn btn-dark">Join Room</button>
-              </form>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
 </div>
 
 <%- include('partials/footer') %>

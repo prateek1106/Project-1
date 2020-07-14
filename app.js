@@ -44,6 +44,7 @@ const roomSchema = new mongoose.Schema ({
   roomid: String,
   password: String,
   roomName: String,
+  orderIdCounter: Number,
   users: [ {
     username: String,
     name: String
@@ -51,7 +52,12 @@ const roomSchema = new mongoose.Schema ({
   items: [ {
     username: String,
     itemName: String,
-    itemQuantity: String
+    itemQuantity: Number,
+    orderid: Number,
+    status: {
+      color: String,
+      username: String
+    }
   }]
 });
 
@@ -67,16 +73,24 @@ passport.deserializeUser(User.deserializeUser());
 
 
 app.get("/", function(req, res){
-  res.render("home");
+  if (req.isAuthenticated()){
+    res.render("home", {auth: "1" , name: req.user.name} );
+  } else{
+    res.render("home", {auth: "0"} );
+  }
 });
 
 app.get("/signup", function(req, res){
-  res.render("signup");
+  if (req.isAuthenticated()){
+    res.redirect("/");
+  } else{
+    res.render("signup");
+  }
 });
 
 app.get("/profile", function(req, res){
   if (req.isAuthenticated()){
-    res.render("profile");
+    res.render("profile", {username: req.user.username, name: req.user.name, rooms: req.user.rooms });
   } else {
     res.redirect("/");
   }
@@ -84,7 +98,23 @@ app.get("/profile", function(req, res){
 
 app.get("/room", function(req,res){
   if (req.isAuthenticated()){
-    res.render("profile");
+    res.render("profile", {username: req.user.username, name: req.user.name, rooms: req.user.rooms });
+  } else {
+    res.redirect("/");
+  }
+});
+
+app.get("/createRoom", function(req,res){
+  if (req.isAuthenticated()){
+    res.render("createRoom", {username: req.user.username, name: req.user.name});
+  } else {
+    res.redirect("/");
+  }
+});
+
+app.get("/joinRoom", function(req,res){
+  if (req.isAuthenticated()){
+    res.render("joinRoom", {username: req.user.username, name: req.user.name});
   } else {
     res.redirect("/");
   }
@@ -112,7 +142,6 @@ app.post("/signup", function(req, res){
             if(err){console.log(err);}
             else{
               rooms=users[0].rooms;
-              //console.log(rooms);
             }
         });
 
@@ -181,14 +210,15 @@ app.post("/create", function(req,res){
     const newRoom =  new Room({
       roomid: req.body.roomid,
       password: hash,
-      roomName: req.body.roomName
+      roomName: req.body.roomName,
+      orderIdCounter: 1
     });
     newRoom.save(function(err){
       if (err) {
         console.log(err);
       } else {
 
-        var users;
+        var users,items;
         //pushing username and name into the room object just created
         Room.find( { roomid: req.body.roomid } , function(err,room){
           if(err){
@@ -198,10 +228,12 @@ app.post("/create", function(req,res){
             room[0].users.push({ username: req.body.userName , name: req.body.name });
             room[0].save();
             users=room[0].users;
+            items=room[0].items;
+
+            res.render("room", {roomName: req.body.roomName, name: req.body.name, users: users,
+              username: req.body.userName, roomid: req.body.roomid, items: items});
           }
         });
-
-        res.render("room", {roomName: req.body.roomName, name: req.body.name, users: users});
       }
     });
   });
@@ -212,23 +244,18 @@ app.post("/join", function(req,res){
 
   const roomid = req.body.roomid;
   const password = req.body.password;
-  var users;
-  //console.log(req.body.userName);
-  //console.log(req.body.name);
+  var users,items;
 
   User.find( { username: req.body.userName ,"rooms.roomid" : req.body.roomid } , function(err,user){
     if(err){
       console.log(err);
     }
     else{
-      //console.log(user[0]);
-      if(user.length==0)
-      {
-        //console.log("push");
-        //console.log(user[0]);
 
+      if(user.length===0)
+      {
         //pushing roomid and roomName into the user object which was being used
-        User.find( { username: req.body.userName } , function(err,user){
+        User.find( { username: req.body.userName } , function(err,users){
           if(err){
             console.log(err);
           }
@@ -239,8 +266,8 @@ app.post("/join", function(req,res){
               if(err){console.log(err);}
               else{
                 roomname=room[0].roomName;
-                user[0].rooms.push({ roomid: req.body.roomid , roomName: roomname });
-                user[0].save();
+                users[0].rooms.push({ roomid: req.body.roomid , roomName: roomname });
+                users[0].save();
               }
             });
           }
@@ -254,6 +281,7 @@ app.post("/join", function(req,res){
             room[0].users.push({ username: req.body.userName , name: req.body.name });
             room[0].save();
             users=room[0].users;
+            items=room[0].items;
           }
         });
 
@@ -265,6 +293,7 @@ app.post("/join", function(req,res){
           }
           else{
             users=room[0].users;
+            items=room[0].items;
           }
         });
       }
@@ -279,21 +308,175 @@ app.post("/join", function(req,res){
     } else {
       if (foundRoom) {
         if (foundRoom.password === password) {
-          res.render("room", {roomName: foundRoom.roomName, name: req.body.name, users: users});
+          res.render("room", {roomName: foundRoom.roomName, name: req.body.name, users: users,
+             username: req.body.userName, roomid: req.body.roomid, items: items});
         }
         bcrypt.compare(password, foundRoom.password, function(err, result) {
           if (result === true) {
-            res.render("room",  {roomName: foundRoom.roomName, name: req.body.name, users: users});
+            res.render("room",  {roomName: foundRoom.roomName, name: req.body.name, users: users,
+               username: req.body.userName, roomid: req.body.roomid, items: items});
           }
         });
       }
     }
   });
+});
+
+app.post("/add", function(req,res){
+
+  var users,items;
+  Room.findOne( { roomid: req.body.roomid } , function(err,room){
+    if(err){console.log(err);}
+    else{
+      room.items.push({ username: req.user.username ,
+                        itemName: req.body.itemName,
+                        itemQuantity: req.body.itemQuantity,
+                        orderid: room.orderIdCounter,
+                        status: {
+                          color: "red",
+                        }});
+      room.save();
+      room.orderIdCounter=room.orderIdCounter+1;
+
+      users=room.users;
+      items=room.items;
+
+      res.render("room",  {roomName: req.body.roomName, name: req.user.name, users: users,
+         username: req.user.userName, roomid: req.body.roomid, items: items});
+    }
+  });
+});
+
+app.post("/delete-room",function(req,res){
+
+  var total_items,items=[];
+  Room.find( { roomid: req.body.roomid } , function(err,room){
+    if(err){console.log(err);}
+    else{
+      total_items=room[0].items;
+      for(var i=0;i<total_items.length;i++)
+      {
+        if(total_items[i].username===req.user.username)
+        {
+          items.push(total_items[i]);
+        }
+      }
+
+      res.render("deleteRoom",  {roomName: req.body.roomName, name: req.user.name,
+        username: req.user.username, roomid: req.body.roomid, items: items} );
+    }
+  });
 
 });
 
+app.post("/delete",function(req,res){
+  //console.log(req.body.itemID);
 
+  Room.find( { roomid: req.body.roomid }, function(err,room){
+    if(err){console.log(err);}
+    else{
+      room[0].items.pull({ _id: req.body.itemID });
+      room[0].save();
 
+      var total_items,items=[];
+      total_items=room[0].items;
+      for(var i=0;i<total_items.length;i++)
+      {
+        if(total_items[i].username===req.user.username)
+        {
+          items.push(total_items[i]);
+        }
+      }
+
+      res.render("deleteRoom",  {roomName: req.body.roomName, name: req.user.name,
+        username: req.user.username, roomid: req.body.roomid, items: items} );
+    }
+
+  });
+
+});
+
+app.post("/done-delete",function(req,res){
+
+  var users,items;
+  Room.find( { roomid: req.body.roomid }, function(err,room){
+    if(err){console.log(err);}
+    else{
+      users=room[0].users;
+      items=room[0].items;
+      res.render("room",  {roomName: req.body.roomName, name: req.user.name, users: users,
+         username: req.user.userName, roomid: req.body.roomid, items: items});
+    }
+  });
+});
+
+app.post("/buy-room",function(req,res){
+
+  var total_items,items=[];
+  Room.find( { roomid: req.body.roomid } , function(err,room){
+    if(err){console.log(err);}
+    else{
+      total_items=room[0].items;
+      for(var i=0;i<total_items.length;i++)
+      {
+        if(total_items[i].status.color==="red")
+        {
+          items.push(total_items[i]);
+        }
+      }
+
+      res.render("buyRoom",  {roomName: req.body.roomName, name: req.user.name,
+        username: req.user.username, roomid: req.body.roomid, items: items} );
+    }
+  });
+
+});
+
+app.post("/buy",function(req,res){
+
+  Room.find( { roomid: req.body.roomid }, function(err,room){
+    if(err){console.log(err);}
+    else{
+      for(var i=0; i<room[0].items.length; i++)
+      {if(room[0].items[i]._id == req.body.itemID)
+        {
+          room[0].items[i].status.color="green";
+          room[0].items[i].status.username=req.user.username;
+        }
+      }
+      room[0].save();
+
+      var total_items,items=[];
+      total_items=room[0].items;
+      for(var i=0;i<total_items.length;i++)
+      {
+        if(total_items[i].status.color==="red")
+        {
+          items.push(total_items[i]);
+        }
+      }
+
+      res.render("buyRoom",  {roomName: req.body.roomName, name: req.user.name,
+        username: req.user.username, roomid: req.body.roomid, items: items} );
+    }
+
+  });
+
+});
+
+app.post("/done-buy",function(req,res){
+
+  var users,items;
+  Room.find( { roomid: req.body.roomid }, function(err,room){
+    if(err){console.log(err);}
+    else{
+      users=room[0].users;
+      items=room[0].items;
+      res.render("room",  {roomName: req.body.roomName, name: req.user.name, users: users,
+         username: req.user.userName, roomid: req.body.roomid, items: items});
+    }
+  });
+});
 
 
 

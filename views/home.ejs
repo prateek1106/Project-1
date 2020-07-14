@@ -1,38 +1,51 @@
 <%- include('partials/header') %>
-<div class="jumbotron centered">
+
+<div class="jumbotron">
   <div class="container">
     <h1 class="display-3">SharePod</h1>
     <p class="lead">Landing Page</p>
     <hr>
-    <a class="btn btn-light btn-lg" href="/signup" role="button">SignUp</a>
-    <div class="container">
-      <h1>Login</h1>
 
-      <div class="row">
-        <div class="col-sm-8">
-          <div class="card">
-            <div class="card-body">
+    <% if( auth === "1" ){ %>
 
-              <!-- Makes POST request to /login route -->
-              <form action="/login" method="POST">
-                <div class="form-group">
-                  <label for="email">Email</label>
-                  <input type="email" class="form-control" name="username">
-                </div>
-                <div class="form-group">
-                  <label for="password">Password</label>
-                  <input type="password" class="form-control" name="password">
-                </div>
-                <button type="submit" class="btn btn-dark">Login</button>
-              </form>
+      <a class="btn btn-light btn-lg" href="/logout" role="button">Log Out</a>
+      <h2>Hello <%= name %>, You are already logged in.</h2>
+      <h4>Enter to continue</h4>
 
+      <a class="btn btn-light btn-lg" href="/profile" role="button">Enter</a>
+
+    <% }else{ %>
+
+      <a class="btn btn-light btn-lg" href="/signup" role="button">SignUp</a>
+      <div class="container">
+        <h1>Login</h1>
+
+        <div class="row">
+          <div class="col-sm-8">
+            <div class="card">
+              <div class="card-body">
+
+                <!-- Makes POST request to /login route -->
+                <form action="/login" method="POST">
+                  <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" name="username">
+                  </div>
+                  <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" name="password">
+                  </div>
+                  <button type="submit" class="btn btn-dark">Login</button>
+                </form>
+
+              </div>
             </div>
           </div>
+
         </div>
-
       </div>
-    </div>
 
+    <% } %>
 
   </div>
 </div>

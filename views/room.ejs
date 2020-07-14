@@ -1,8 +1,10 @@
 <%- include('partials/header') %>
 <div class="jumbotron centered">
-  <h1>Hello <%=name%>,This is the room</h1>
-  <h2>Name: <%= roomName %></h2>
+  <h1>Hello <%=name%>, your email/username: <%=username%> </h1>
+  <h2>Name: <%= roomName %>, room id: <%=roomid%> </h2>
   <br><br>
+  <a class="btn btn-light" href="/logout" role="button">Log Out</a>
+  <a class="btn btn-light" href="/profile" role="button"><%= name %></a>
   <h4>The Users part of this room are:</h4>
   <% if(typeof(users)==="undefined" || users.length===0 ){ %>
     <p>None</p>
@@ -11,7 +13,33 @@
     <p>User Name:<%= users[i].name %>||  User Email Id:<%= users[i].username %></p><br>
   <% } }%>
 
-  <h3>List of Items: </h3>
+  <form action="/delete-room" method="post">
+      <input type="hidden" name="roomName" value="<%=roomName%>">
+      <input type="hidden" name="roomid" value="<%=roomid%>">
+      <button type="submit" class="btn btn-dark">Delete</button>
+  </form>
+  <form action="/buy-room" method="post">
+      <input type="hidden" name="roomName" value="<%=roomName%>">
+      <input type="hidden" name="roomid" value="<%=roomid%>">
+      <button type="submit" class="btn btn-dark">Buy</button>
+  </form>
+
+    <h3>List of Items: </h3>
+    <% if(typeof(items)==="undefined" || items.length===0 ){ %>
+      <p>None</p>
+    <% }else{ %>
+    <% for(var i=0 ; i<items.length ; i++){ %>
+      <div>
+        <p>User Name:<%= items[i].username %>||  Item Name:<%= items[i].itemName %>||  Item Quantity:<%= items[i].itemQuantity %></p>
+        <p>Order ID: <%= items[i].orderid %> </p>
+        <p>Status:-- Color: <%= items[i].status.color %>
+          <% if(items[i].status.color==="green"){ %>
+            User Name: <%= items[i].status.username %>
+          <% } %>
+        </p>
+        <br>
+      </div>
+    <% } }%>
 
   <h4>Add Item: </h4>
   <form action="/add" method="POST">
@@ -19,9 +47,12 @@
       <input type="text"name="itemName">
       <label for="text">Item Quantity</label>
       <input type="text"name="itemQuantity">
+      <input type="hidden" name="roomName" value="<%=roomName%>">
+      <input type="hidden" name="roomid" value="<%=roomid%>">
+
+
     <button type="submit" class="btn btn-dark">Add</button>
   </form>
-
 </div>
 
 <%- include('partials/footer') %>
