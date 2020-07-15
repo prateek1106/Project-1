@@ -1,12 +1,15 @@
 <%- include('partials/header') %>
+<a class="btn btn-light" href="/" role="button">LOGO</a>
 
 <div class="jumbotron text-center">
   <div class="container">
-    <h2> Hello <%= name %> </h2>
-    <h3> Your Email ID is: <%= username %> </h3>
+    <h2> Hello <%= firstName %> <%= lastName %> </h2>
+    <h3> Your User ID is: <%= username %> </h3>
+    <h3> Your Email ID is: <%= email %> </h3>
+
     <h1> This is the Profile Page</h1>
     <a class="btn btn-light btn-lg" href="/logout" role="button">Log Out</a>
-    <a class="btn btn-light btn-lg" href="/profile" role="button"><%= name %></a>
+    <a class="btn btn-light btn-lg" href="/profile" role="button"><%= firstName %></a>
 
     <br><br>
     <h4>The rooms that you are currently part of are: </h4>

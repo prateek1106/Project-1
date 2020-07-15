@@ -1,4 +1,6 @@
 <%- include('partials/header') %>
+<a class="btn btn-light" href="/" role="button">LOGO</a>
+
 <div class="container mt-5">
   <h1>SignUp</h1>
 
@@ -10,12 +12,20 @@
           <!-- Makes POST request to /register route -->
           <form action="/signup" method="POST">
             <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" class="form-control" name="username">
+              <label for="text">User ID</label>
+              <input type="text" class="form-control" name="username">
             </div>
             <div class="form-group">
-              <label for="text">Name</label>
-              <input type="text" class="form-control" name="name">
+              <label for="text">First Name</label>
+              <input type="text" class="form-control" name="firstName">
+            </div>
+            <div class="form-group">
+              <label for="text">Last Name</label>
+              <input type="text" class="form-control" name="lastName">
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" class="form-control" name="email">
             </div>
 
             <div class="form-group">

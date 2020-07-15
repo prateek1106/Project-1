@@ -1,9 +1,11 @@
 <%- include('partials/header') %>
+<a class="btn btn-light" href="/" role="button">LOGO</a>
+
 <div class="jumbotron centered">
   <a class="btn btn-light" href="/logout" role="button">Log Out</a>
-  <a class="btn btn-light" href="/profile" role="button"><%= name %></a>
-  
-  <h1>Hello <%=name%>, your email/username: <%=username%> </h1>
+  <a class="btn btn-light" href="/profile" role="button"><%= firstName %></a>
+
+  <h1>Hello <%=firstName%> <%=lastName%>, your user id: <%=username%> </h1>
   <h2>Name: <%= roomName %>, room id: <%=roomid%> </h2>
   <br><br>
 
@@ -20,7 +22,7 @@
   <% for(var i=0 ; i<items.length ; i++){ %>
     <div>
       <form action="/delete" method="POST">
-        <p>User Name:<%= items[i].username %>||  Item Name:<%= items[i].itemName %>||  Item Quantity:<%= items[i].itemQuantity %>
+        <p>User ID:<%= items[i].username %>||  Item Description:<%= items[i].itemDescription %>
 
          <input type="hidden" name="roomName" value="<%=roomName%>">
          <input type="hidden" name="itemID" value="<%=items[i]._id%>">

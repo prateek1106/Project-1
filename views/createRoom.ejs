@@ -1,7 +1,8 @@
 <%- include('partials/header') %>
+<a class="btn btn-light" href="/" role="button">LOGO</a>
 
 <a class="btn btn-light btn-lg" href="/logout" role="button">Log Out</a>
-<a class="btn btn-light btn-lg" href="/profile" role="button"><%= name %></a>
+<a class="btn btn-light btn-lg" href="/profile" role="button"><%= firstName %></a>
 
 <div class="container mt-5">
   <h1>Create Room</h1>
@@ -26,7 +27,8 @@
             </div>
 
             <input type="hidden" name="userName" value="<%=username%>">
-            <input type="hidden" name="name" value="<%=name%>">
+            <input type="hidden" name="firstName" value="<%=firstName%>">
+            <input type="hidden" name="lastName" value="<%=lastName%>">
 
 
             <button type="submit" class="btn btn-dark">Create Room</button>

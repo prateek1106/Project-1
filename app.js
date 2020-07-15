@@ -33,7 +33,9 @@ mongoose.set("useCreateIndex", true);
 const userSchema = new mongoose.Schema ({
   username: String,
   password: String,
-  name: String,
+  firstName: String,
+  lastName: String,
+  email: String,
   rooms: [ {
     roomid: String,
     roomName: String
@@ -47,12 +49,12 @@ const roomSchema = new mongoose.Schema ({
   orderIdCounter: Number,
   users: [ {
     username: String,
-    name: String
+    firstName: String,
+    lastName: String
   } ],
   items: [ {
     username: String,
-    itemName: String,
-    itemQuantity: Number,
+    itemDescription: String,
     orderid: Number,
     status: {
       color: String,
@@ -71,10 +73,13 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+app.get("/",function(req,res){
+  res.render("landing");
+});
 
-app.get("/", function(req, res){
+app.get("/home", function(req, res){
   if (req.isAuthenticated()){
-    res.render("home", {auth: "1" , name: req.user.name} );
+    res.render("home", {auth: "1" , firstName: req.user.firstName, lastName: req.user.lastName} );
   } else{
     res.render("home", {auth: "0"} );
   }
@@ -82,7 +87,7 @@ app.get("/", function(req, res){
 
 app.get("/signup", function(req, res){
   if (req.isAuthenticated()){
-    res.redirect("/");
+    res.redirect("/home");
   } else{
     res.render("signup");
   }
@@ -90,7 +95,8 @@ app.get("/signup", function(req, res){
 
 app.get("/profile", function(req, res){
   if (req.isAuthenticated()){
-    res.render("profile", {username: req.user.username, name: req.user.name, rooms: req.user.rooms });
+    res.render("profile", {username: req.user.username, firstName: req.user.firstName,
+                          lastName: req.user.lastName, email: req.user.email, rooms: req.user.rooms });
   } else {
     res.redirect("/");
   }
@@ -98,40 +104,44 @@ app.get("/profile", function(req, res){
 
 app.get("/room", function(req,res){
   if (req.isAuthenticated()){
-    res.render("profile", {username: req.user.username, name: req.user.name, rooms: req.user.rooms });
+    res.render("profile", {username: req.user.username,firstName: req.user.firstName,
+                          lastName: req.user.lastName, email: req.user.email, rooms: req.user.rooms });
   } else {
-    res.redirect("/");
+    res.redirect("/home");
   }
 });
 
 app.get("/createRoom", function(req,res){
   if (req.isAuthenticated()){
-    res.render("createRoom", {username: req.user.username, name: req.user.name});
+    res.render("createRoom", {username: req.user.username, firstName: req.user.firstName, lastName: req.user.lastName});
   } else {
-    res.redirect("/");
+    res.redirect("/home");
   }
 });
 
 app.get("/joinRoom", function(req,res){
   if (req.isAuthenticated()){
-    res.render("joinRoom", {username: req.user.username, name: req.user.name});
+    res.render("joinRoom", {username: req.user.username, firstName: req.user.firstName, lastName: req.user.lastName});
   } else {
-    res.redirect("/");
+    res.redirect("/home");
   }
 });
 
 app.get("/logout", function(req, res){
   req.logout();
-  res.redirect("/");
+  res.redirect("/home");
 });
 
 app.post("/signup", function(req, res){
 
-  var name=req.body.name;
+  var firstName=req.body.firstName;
+  var lastName=req.body.lastName;
+  var email=req.body.email;
   var username=req.body.username;
   var rooms;
 
-  User.register({username: req.body.username, name: req.body.name }, req.body.password, function(err, user){
+  User.register({username: req.body.username, firstName: req.body.firstName,
+                lastName: req.body.lastName, email: req.body.email }, req.body.password, function(err, user){
     if (err) {
       console.log(err);
       res.redirect("/signup");
@@ -145,7 +155,7 @@ app.post("/signup", function(req, res){
             }
         });
 
-        res.render("profile", {name : name, username: username, rooms: rooms});
+        res.render("profile", {firstName: firstName, lastName: lastName, email: email , username: username, rooms: rooms});
       });
     }
   });
@@ -159,7 +169,7 @@ app.post("/login", function(req, res){
     password: req.body.password
   });
 
-  var name,username,rooms;
+  var firstName,lastName,email,username,rooms;
 
   User.find( { username: req.body.username } , function(err,users){
     if(err){
@@ -167,6 +177,9 @@ app.post("/login", function(req, res){
     }
     else{
       name=users[0].name;
+      firstName=users[0].firstName;
+      lastName=users[0].lastName;
+      email=users[0].email;
       username=users[0].username;
     }
   });
@@ -175,7 +188,6 @@ app.post("/login", function(req, res){
     if(err){console.log(err);}
     else{
       rooms=users[0].rooms;
-      //console.log(rooms);
     }
   });
 
@@ -183,10 +195,10 @@ app.post("/login", function(req, res){
   req.login(user, function(err){
     if (err) {
       console.log(err);
-      res.redirect("/");
+      res.redirect("/home");
     } else {
       passport.authenticate("local")(req, res, function(){
-        res.render("profile", {name : name, username: username, rooms: rooms} );
+        res.render("profile", {firstName: firstName, lastName: lastName, email: email , username: username, rooms: rooms} );
       });
     }
   });
@@ -225,13 +237,13 @@ app.post("/create", function(req,res){
             console.log(err);
           }
           else{
-            room[0].users.push({ username: req.body.userName , name: req.body.name });
+            room[0].users.push({ username: req.body.userName , firstName: req.body.firstName , lastName: req.body.lastName});
             room[0].save();
             users=room[0].users;
             items=room[0].items;
 
-            res.render("room", {roomName: req.body.roomName, name: req.body.name, users: users,
-              username: req.body.userName, roomid: req.body.roomid, items: items});
+            res.render("room", {roomName: req.body.roomName,  firstName: req.body.firstName , lastName: req.body.lastName
+              , users: users, username: req.body.userName, roomid: req.body.roomid, items: items});
           }
         });
       }
@@ -278,7 +290,7 @@ app.post("/join", function(req,res){
             console.log(err);
           }
           else{
-            room[0].users.push({ username: req.body.userName , name: req.body.name });
+            room[0].users.push({ username: req.body.userName ,  firstName: req.body.firstName , lastName: req.body.lastName });
             room[0].save();
             users=room[0].users;
             items=room[0].items;
@@ -308,13 +320,13 @@ app.post("/join", function(req,res){
     } else {
       if (foundRoom) {
         if (foundRoom.password === password) {
-          res.render("room", {roomName: foundRoom.roomName, name: req.body.name, users: users,
-             username: req.body.userName, roomid: req.body.roomid, items: items});
+          res.render("room", {roomName: foundRoom.roomName,  firstName: req.body.firstName , lastName: req.body.lastName
+            , users: users, username: req.body.userName, roomid: req.body.roomid, items: items});
         }
         bcrypt.compare(password, foundRoom.password, function(err, result) {
           if (result === true) {
-            res.render("room",  {roomName: foundRoom.roomName, name: req.body.name, users: users,
-               username: req.body.userName, roomid: req.body.roomid, items: items});
+            res.render("room", {roomName: foundRoom.roomName,  firstName: req.body.firstName , lastName: req.body.lastName
+              , users: users, username: req.body.userName, roomid: req.body.roomid, items: items});
           }
         });
       }
@@ -329,8 +341,7 @@ app.post("/add", function(req,res){
     if(err){console.log(err);}
     else{
       room.items.push({ username: req.user.username ,
-                        itemName: req.body.itemName,
-                        itemQuantity: req.body.itemQuantity,
+                        itemDescription: req.body.itemDescription,
                         orderid: room.orderIdCounter,
                         status: {
                           color: "red",
@@ -341,8 +352,8 @@ app.post("/add", function(req,res){
       users=room.users;
       items=room.items;
 
-      res.render("room",  {roomName: req.body.roomName, name: req.user.name, users: users,
-         username: req.user.userName, roomid: req.body.roomid, items: items});
+      res.render("room",  {roomName: req.body.roomName, firstName: req.user.firstName, lastName: req.user.lastName, users: users,
+         username: req.user.username, roomid: req.body.roomid, items: items});
     }
   });
 });
@@ -362,7 +373,7 @@ app.post("/delete-room",function(req,res){
         }
       }
 
-      res.render("deleteRoom",  {roomName: req.body.roomName, name: req.user.name,
+      res.render("deleteRoom",  {roomName: req.body.roomName,  firstName: req.user.firstName, lastName: req.user.lastName ,
         username: req.user.username, roomid: req.body.roomid, items: items} );
     }
   });
@@ -388,7 +399,7 @@ app.post("/delete",function(req,res){
         }
       }
 
-      res.render("deleteRoom",  {roomName: req.body.roomName, name: req.user.name,
+      res.render("deleteRoom",  {roomName: req.body.roomName, firstName: req.user.firstName, lastName: req.user.lastName,
         username: req.user.username, roomid: req.body.roomid, items: items} );
     }
 
@@ -404,8 +415,8 @@ app.post("/done-delete",function(req,res){
     else{
       users=room[0].users;
       items=room[0].items;
-      res.render("room",  {roomName: req.body.roomName, name: req.user.name, users: users,
-         username: req.user.userName, roomid: req.body.roomid, items: items});
+      res.render("room",  {roomName: req.body.roomName, firstName: req.user.firstName, lastName: req.user.lastName, users: users,
+         username: req.user.username, roomid: req.body.roomid, items: items});
     }
   });
 });
@@ -425,7 +436,7 @@ app.post("/buy-room",function(req,res){
         }
       }
 
-      res.render("buyRoom",  {roomName: req.body.roomName, name: req.user.name,
+      res.render("buyRoom",  {roomName: req.body.roomName,  firstName: req.user.firstName, lastName: req.user.lastName,
         username: req.user.username, roomid: req.body.roomid, items: items} );
     }
   });
@@ -456,7 +467,7 @@ app.post("/buy",function(req,res){
         }
       }
 
-      res.render("buyRoom",  {roomName: req.body.roomName, name: req.user.name,
+      res.render("buyRoom",  {roomName: req.body.roomName,  firstName: req.user.firstName, lastName: req.user.lastName,
         username: req.user.username, roomid: req.body.roomid, items: items} );
     }
 
@@ -472,8 +483,8 @@ app.post("/done-buy",function(req,res){
     else{
       users=room[0].users;
       items=room[0].items;
-      res.render("room",  {roomName: req.body.roomName, name: req.user.name, users: users,
-         username: req.user.userName, roomid: req.body.roomid, items: items});
+      res.render("room",  {roomName: req.body.roomName,  firstName: req.user.firstName, lastName: req.user.lastName, users: users,
+         username: req.user.username, roomid: req.body.roomid, items: items});
     }
   });
 });
